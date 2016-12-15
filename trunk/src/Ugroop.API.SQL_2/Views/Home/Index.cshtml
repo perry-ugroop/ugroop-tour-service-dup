@@ -5,8 +5,8 @@
 <script>
 
     $(document).ready(function () {
-        //ParseX();
-        //ParseBBB();
+
+        Insert_Tour_TEST();
 
         //Get_AllAccount();
 
@@ -22,9 +22,45 @@
 
         //Log_User();
 
-        Get_AccountDocumentById();
+        //Get_AccountDocumentById();
 
     });
+
+
+    // TESTING EXCEPTION HANDLER.........    
+
+    function Insert_Tour_TEST() {
+
+        var model = {
+            DestinationCity: "Mars City",
+            OrganizedBy: "3",
+            Photo: "AAA",
+            TourDescription: "AAA",
+            TourName: "AAA",
+            TourTypeId: "1",
+            StartDate: "2016-12-20 22:43:09.340",
+            EndDate: "2016-12-30 22:43:09.340",
+        };
+
+        var accessToken = "eyJraWQiOiJNRTJaUU9KTUE1N1ZTREQ4WFBXMVE3QjFYIiwic3R0IjoiYWNjZXNzIiwiYWxnIjoiSFMyNTYifQ.eyJqdGkiOiIzVENXMGl3a2xuSFhTNldKRWdHRlAiLCJpYXQiOjE0ODE3NzA1NTksImlzcyI6Imh0dHBzOi8vYXBpLnN0b3JtcGF0aC5jb20vdjEvYXBwbGljYXRpb25zLzNmSGNMaDVQNlIySllxMkV4bUhVaXoiLCJzdWIiOiJodHRwczovL2FwaS5zdG9ybXBhdGguY29tL3YxL2FjY291bnRzLzFhWHFGQU9PdXo5cG9tRXNWUTFmanAiLCJleHAiOjE0ODE3NzQxNTksInJ0aSI6IjNUQ1Z4T3JxQlVJdWQwZjZ5b3pkTCJ9.0n1aZN3r74wZBmxr4TrM4eDNlHq1MUsnqQ_WYc1fTjE";
+
+        $.ajax({
+            type: "POST",
+            data: JSON.stringify({ Tour_Insert: model }),
+            //data: model,
+            url: "/Tour/TEST_Add_Tour_Async",
+            contentType: "application/json",
+            dataType: 'jsonp',
+            headers: {
+                "Authorization": "Bearer " + accessToken
+            },
+        }).done(function (res) {
+            //console.log('res', res);
+        });
+
+    }
+
+    // TESTING EXCEPTION HANDLER.........    
 
     function ParseX() {
         $.ajax({

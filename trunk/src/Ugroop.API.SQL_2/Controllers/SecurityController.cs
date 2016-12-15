@@ -1,9 +1,12 @@
-﻿using Ugroop.API.SQL.Helper.Filter;
+﻿using System.Web.Http;
+using Ugroop.API.SQL.Filter;
+using Ugroop.API.SQL.Filter.StormPath;
 using UGroopData.Sql.Service.UGroopWeb.Interface;
 
 namespace Ugroop.API.SQL.Controllers {
 
-    [UserSessionFilter]
+    [StormpathBearerAuthentication]
+    [Authorize]
     public class SecurityController : BaseController {
         public SecurityController(IAccountService accountService, IUserService userService) : base(accountService, userService) { }
 
@@ -14,7 +17,6 @@ namespace Ugroop.API.SQL.Controllers {
         public SecurityController(IUserService userService, ISettingService settingService) : base(userService, settingService) { }
 
         public SecurityController(IUserService userService, ITourService tourService) : base(userService, tourService) { }
-
     }
 
 }

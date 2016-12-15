@@ -1,714 +1,421 @@
 ﻿using Newtonsoft.Json.Linq;
+using Stormpath.AspNet.WebApi;
 using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
-using Ugroop.API.SQL.Helper.Json;
-using UGroopData.Sql.Repository2.Data;
+using Ugroop.API.SQL.Filter;
+using UGroopData.Entity.ViewModel.SQL.Data;
 using UGroopData.Sql.Service.UGroopWeb.Interface;
+using UGroopData.Utilities.String;
 
 namespace Ugroop.API.SQL.Controllers {
+
+    //// allows these stormpath groups to execute the controller
+    //[StormpathGroupsRequired("Tour Admin", "Tour Participant")]
+    [ApiExceptionFilter]
     public class TourController : SecurityController {
 
         public TourController(IUserService userService, ITourService tourService) : base(userService, tourService) { }
 
-        #region TOUR                    .
+        #region TOUR                                .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_Tour(JObject jsonData) {
-            var tour = JEntity<Tour>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_Tour(JObject jsonData) {
+            var tour = JEntity<Tour_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(tour).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(tour)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_Tour(JObject jsonData) {
-            var tour = JEntity<Tour>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_Tour(JObject jsonData) {
+            var tour = JEntity<Tour_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(tour).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(tour)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_AllToursByAccountID(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_Tour(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_AllToursByAccountID(id).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Tour(id)).JsonSerialize())
             };
         }
 
+        //[StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Get_TourByAccountId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourByAccountId(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourByTourId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourByTourId(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourByAccountAndTourId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            int organizerId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("organizerId"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourByAccountAndTourId(organizerId, id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourListByAccountId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourListByAccountId(id).JsonSerialize())
-            };
-        }
-
-        #endregion
-
-        #region TOUR PARTICIPANT                   .
-
-        [HttpPost]
-        public HttpResponseMessage Add_TourParticipant(JObject jsonData) {
-            var tourParticipant = JEntity<Tour_Participant>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(tourParticipant).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Update_TourParticipant(JObject jsonData) {
-            var tourParticipant = JEntity<Tour_Participant>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(tourParticipant).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_AllTourParticipantsByRole(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_AllTourParticipantsByRole(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_ParticipantByTourAndAccountId(JObject jsonData) {
-            int accountId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("accountId"));
+        public async Task<HttpResponseMessage> Get_TourByAccountAndTourId(JObject jsonData) {
+            int userId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("userId"));
             int tourId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourId"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_ParticipantByTourAndAccountId(accountId, tourId).JsonSerialize())
+                Content = new StringContent((await TourService.GetAsync_TourByAccountAndTourId(userId, tourId)).JsonSerialize())
             };
         }
 
+        //[StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Verify_TourOwnership(JObject jsonData) {
-            int tourId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourId"));
-            int accountId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("accountId"));
+        public async Task<HttpResponseMessage> Get_TourListByAccountId(JObject jsonData) {
+            int userId = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("userId"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Verify_TourOwnership(tourId, accountId).JsonSerialize())
+                Content = new StringContent((await TourService.GetAsync_TourListByAccountId(userId)).JsonSerialize())
             };
         }
 
+        //[StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Get_AllTourParticipantsByTourId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
+        public async Task<HttpResponseMessage> Get_TourByDate(JObject jsonData) {
+            var startdate = Convert.ToDateTime(JsonData.Instance(jsonData).Get_JsonObject("startdate"));
+            var enddate = Convert.ToDateTime(JsonData.Instance(jsonData).Get_JsonObject("enddate"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_AllTourParticipantsByTourId(id).JsonSerialize())
-            };
-        }
-
-        #endregion
-
-        #region NEWSFEED                    .
-
-        [HttpPost]
-        public HttpResponseMessage Add_Newsfeed(JObject jsonData) {
-            var newsfeed = JEntity<Newsfeed>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(newsfeed).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Update_Newsfeed(JObject jsonData) {
-            var newsfeed = JEntity<Newsfeed>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(newsfeed).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_NewsfeedById(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_NewsfeedByNewsfeedId(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage GetAllNewsfeedbyTourId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.GetAllNewsfeedbyTourId(id).JsonSerialize())
+                Content = new StringContent((await TourService.GetAsync_TourByDate(startdate, enddate)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region REVIEW                    .
+        #region TOUR PARTICIPANT                    .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_Review(JObject jsonData) {
-            var review = JEntity<Review>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourParticipant(JObject jsonData) {
+            var participant = JEntity<TourParticipant_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(review).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(participant)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_Review(JObject jsonData) {
-            var review = JEntity<Review>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourParticipant(JObject jsonData) {
+            var participant = JEntity<TourParticipant_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(review).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(participant)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_ReviewsByReviewId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourParticipant(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_ReviewsByReviewId(id).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_TourParticipant(id)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage GetAllReviewsbyTourId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Get_TourParticipantById(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.GetAllReviewsbyTourId(id).JsonSerialize())
+                Content = new StringContent((await TourService.Get_TourParticipantById_Async(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR_PLAN                    .
+        #region NEWSFEED                            .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourPlan(JObject jsonData) {
-            var tourPlan = JEntity<Tour_Plan>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_NewsFeed(JObject jsonData) {
+            var newsfeed = JEntity<Newsfeed_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(tourPlan).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(newsfeed)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourPlan(JObject jsonData) {
-            var tourPlan = JEntity<Tour_Plan>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_NewsFeed(JObject jsonData) {
+            var newsfeed = JEntity<Newsfeed_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(tourPlan).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(newsfeed)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourPlanById(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_NewsFeed(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourPlanById(id).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Newsfeed(id)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Get_AllTourPlanByTourId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Get_NewsfeedById(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_AllTourPlanByTourId(id).JsonSerialize())
+                Content = new StringContent((await TourService.Get_NewsfeedByNewsfeedId_Async(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR_FLIGHT                 .
+        #region REVIEW                              .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourFlight(JObject jsonData) {
-            var tourFlight = JEntity<Tour_Flight>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_Review(JObject jsonData) {
+            var review = JEntity<Review_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(tourFlight).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(review)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourFlight(JObject jsonData) {
-            var tourFlight = JEntity<Tour_Flight>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_Review(JObject jsonData) {
+            var review = JEntity<Review_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(tourFlight).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(review)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourFlightByTourId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_Review(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourFlightByTourId(id).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Review(id)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Get_TourFlightByTourFlightId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Get_ReviewById(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourFlightByTourFlightId(id).JsonSerialize())
+                Content = new StringContent((await TourService.GetAsync_TourReviewById(id)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Get_TourFlightByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourFlightByTourAndPlan(tourid,planid).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourFlightByFlightId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Get_ReviewListByTourId(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourFlightByFlightId(id).JsonSerialize())
+                Content = new StringContent((await TourService.GetAsync_ReviewListByTourId(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR_TRAIN                 .
+        #region TOUR FLIGHT                         .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourTrain(JObject jsonData) {
-            var tourTrain = JEntity<Tour_Train>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourFlight(JObject jsonData) {
+            var flight = JEntity<TourFlight_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(tourTrain).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(flight)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourTrain(JObject jsonData) {
-            var tourTrain = JEntity<Tour_Train>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourFlight(JObject jsonData) {
+            var flight = JEntity<TourFlight_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(tourTrain).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(flight)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourTrainByTourId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourFlight(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourTrainByTourId(id).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Flight(id)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Get_TourTrainByTourTrainId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Get_TourFlightById(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourTrainByTourTrainId(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourTrainByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourTrainByTourAndPlan(tourid, planid).JsonSerialize())
+                Content = new StringContent((await TourService.GetAsync_TourFlightById(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region CAR RENTAL                 .
+        #region TOUR CAR RENTAL                     .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourCarRental(JObject jsonData) {
-            var tourCar = JEntity<Tour_CarRental>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourCarRental(JObject jsonData) {
+            var carrental = JEntity<TourCarRental_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(tourCar).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(carrental)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourCarRental(JObject jsonData) {
-            var tourCar = JEntity<Tour_CarRental>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourCarRental(JObject jsonData) {
+            var carrental = JEntity<TourCarRental_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(tourCar).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(carrental)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourCarByTourId(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourCarRental(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourCarByTourId(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourCarByTourCarId(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourCarByTourCarId(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourCarRentalByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourCarRentalByTourAndPlan(tourid, planid).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_CarRental(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR CRUISE                  .
+        #region TOUR TRAIN                          .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourCruise(JObject jsonData) {
-            var cruise = JEntity<Tour_Cruise>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourTrain(JObject jsonData) {
+            var train = JEntity<TourTrain_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(cruise).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(train)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourCruise(JObject jsonData) {
-            var cruise = JEntity<Tour_Cruise>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourTrain(JObject jsonData) {
+            var train = JEntity<TourTrain_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(cruise).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(train)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourCruiseById(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourTrain(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourCruiseById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourCruiseByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourCruiseByTourAndPlan(tourid, planid).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Train(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR PARKING                  .
+        #region TOUR LODGING                        .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourParking(JObject jsonData) {
-            var parking = JEntity<Tour_Parking>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourLodging(JObject jsonData) {
+            var lodging = JEntity<TourLodging_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(parking).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(lodging)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourParking(JObject jsonData) {
-            var parking = JEntity<Tour_Parking>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourLodging(JObject jsonData) {
+            var lodging = JEntity<TourLodging_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(parking).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(lodging)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourParkingById(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourLodging(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourParkingById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourParkingByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourParkingByTourAndPlan(tourid, planid).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Lodging(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR LODGING                  .
+        #region TOUR CRUISE                         .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourLodging(JObject jsonData) {
-            var lodging = JEntity<Tour_Lodging>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourCruise(JObject jsonData) {
+            var cruise = JEntity<TourCruise_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(lodging).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(cruise)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourLodging(JObject jsonData) {
-            var lodging = JEntity<Tour_Lodging>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourCruise(JObject jsonData) {
+            var cruise = JEntity<TourCruise_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(lodging).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(cruise)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourLodgingById(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourCruise(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourLodgingById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourLodgingByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourLodgingByTourAndPlan(tourid, planid).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Cruise(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR RESTAURANT                  .
+        #region TOUR PARKING                        .
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Add_TourRestaurant(JObject jsonData) {
-            var restaurant = JEntity<Tour_Restaurant>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Add_TourParking(JObject jsonData) {
+            var parking = JEntity<TourParking_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(restaurant).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(parking)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Update_TourRestaurant(JObject jsonData) {
-            var restaurant = JEntity<Tour_Restaurant>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> Update_TourParking(JObject jsonData) {
+            var parking = JEntity<TourParking_Update>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(restaurant).JsonSerialize())
+                Content = new StringContent((await TourService.Update_AsyncData(parking)).JsonSerialize())
             };
         }
 
+        [StormpathGroupsRequired("Tour Admin")]
         [HttpPost]
-        public HttpResponseMessage Get_TourRestaurantById(JObject jsonData) {
+        public async Task<HttpResponseMessage> Delete_TourParking(JObject jsonData) {
             int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourRestaurantById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourRestaurantByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourRestaurantByTourAndPlan(tourid, planid).JsonSerialize())
+                Content = new StringContent((await TourService.DeleteAsync_Parking(id)).JsonSerialize())
             };
         }
 
         #endregion
 
-        #region TOUR MEETING                  .
 
+        // TEST -> EXCEPTION HANDLER / STORMPATH VALIDATION STRATEGY
+        //[StormpathGroupsRequired("Tour Admin")]
+        [StormpathGroupsRequired("Tour Admin", "Tour Participant")]
         [HttpPost]
-        public HttpResponseMessage Add_TourMeeting(JObject jsonData) {
-            var meeting = JEntity<Tour_Meeting>.Instance().Get_Entity(jsonData);
+        public async Task<HttpResponseMessage> TEST_Add_Tour_Async(JObject jsonData) {
+            //throw new FormatException("this is a sample exception...");
+            //var role = Identity.Role();
+            var tour = JEntity<Tour_Insert>.Instance().Get_Entity(jsonData);
             return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(meeting).JsonSerialize())
+                Content = new StringContent((await TourService.Add_AsyncData(tour)).JsonSerialize())
             };
         }
 
-        [HttpPost]
-        public HttpResponseMessage Update_TourMeeting(JObject jsonData) {
-            var meeting = JEntity<Tour_Meeting>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(meeting).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourMeetingById(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourMeetingById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourMeetingByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourMeetingByTourAndPlan(tourid, planid).JsonSerialize())
-            };
-        }
-
-        #endregion
-
-        #region TOUR ACTIVITY                  .
-
-        [HttpPost]
-        public HttpResponseMessage Add_TourActivity(JObject jsonData) {
-            var activity = JEntity<Tour_Activity>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(activity).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Update_TourActivity(JObject jsonData) {
-            var activity = JEntity<Tour_Activity>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(activity).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourActivityById(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourActivityById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourActivityByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourActivityByTourAndPlan(tourid, planid).JsonSerialize())
-            };
-        }
-
-        #endregion
-
-        #region TOUR MAP                  .
-
-        [HttpPost]
-        public HttpResponseMessage Add_TourMap(JObject jsonData) {
-            var map = JEntity<Tour_Map>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(map).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Update_TourMap(JObject jsonData) {
-            var map = JEntity<Tour_Map>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(map).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourMapById(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourMapById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourMapByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourMapByTourAndPlan(tourid, planid).JsonSerialize())
-            };
-        }
-
-        #endregion
-
-        #region TOUR DIRECTION                  .
-
-        [HttpPost]
-        public HttpResponseMessage Add_TourDirection(JObject jsonData) {
-            var direction = JEntity<Tour_Direction>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(direction).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Update_TourDirection(JObject jsonData) {
-            var direction = JEntity<Tour_Direction>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(direction).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourDirectionById(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourDirectionById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourDirectionByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourDirectionByTourAndPlan(tourid, planid).JsonSerialize())
-            };
-        }
-
-        #endregion
-
-        #region TOUR NOTE                  .
-
-        [HttpPost]
-        public HttpResponseMessage Add_TourNote(JObject jsonData) {
-            var note = JEntity<Tour_Note>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Add(note).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Update_TourNote(JObject jsonData) {
-            var note = JEntity<Tour_Note>.Instance().Get_Entity(jsonData);
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Update(note).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TourNoteById(JObject jsonData) {
-            int id = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("id"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TourNoteById(id).JsonSerialize())
-            };
-        }
-
-        [HttpPost]
-        public HttpResponseMessage Get_TournoteByTourAndPlan(JObject jsonData) {
-            int tourid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("tourid"));
-            int planid = Convert.ToInt32(JsonData.Instance(jsonData).Get_JsonObject("planid"));
-            return new HttpResponseMessage {
-                Content = new StringContent(TourService.Get_TournoteByTourAndPlan(tourid, planid).JsonSerialize())
-            };
-        }
-
-        #endregion
 
     }
 }
